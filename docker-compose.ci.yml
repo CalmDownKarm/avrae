@@ -19,7 +19,8 @@ services:
       - GOOGLE_SERVICE_ACCOUNT
     volumes:
       - "./shared:/app/shared"
-      - "~/Documents/avrae/ghetto-avrae/avrae-nlp-raw/1664301210-f5fa4da8-314f-4a45-966a-950e0682d4dd:/opt/dataset/"
+      - "~/Documents/avrae/aws-kinesis-dataset-exploration-tool/data/1664301210-f5fa4da8-314f-4a45-966a-950e0682d4dd:/opt/dataset/"
+      - "./logfile:/opt/logfile"
 
   mongo:
     image: mongo
