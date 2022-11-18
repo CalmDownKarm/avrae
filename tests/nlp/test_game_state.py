@@ -45,6 +45,15 @@ def find_players(events: Iterable[dict]) -> Iterable[dict]:
     for event in filtered_events:
         yield event.get("caster", {})
 
+    # TODO
+    #     def _extract_character_from_event(self, event):
+    #         if event["event_type"] not in ("command", "automation_run"):
+    #             return
+    #         caster = event["caster"]
+    #         if caster is None or "upstream" not in caster:
+    #             return
+    #         yield caster
+
 def dump_players_to_mongo(casters: Iterable[dict]) -> None:
     # establish mongo connection
     collection = "characters"
