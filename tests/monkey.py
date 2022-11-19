@@ -21,12 +21,19 @@ log = logging.getLogger(__name__)
 
 
 # methods to monkey-patch in to send messages to the bot without sending
-def message(self, message_content, as_owner=False, dm=False):
+def message(self, message_content, as_owner=False, dm=False, author_id=None):
     if message_content.startswith("!"):  # use the right prefix
         if not dm:
             message_content = f"{self.prefixes.get(str(TEST_GUILD_ID), '!')}{message_content[1:]}"
         else:
             message_content = f"{DEFAULT_PREFIX}{message_content[1:]}"
+
+    if as_owner:
+        author_obj = OWNER_USER
+    elif author_id is None:
+        author_obj = DEFAULT_USER
+    else:
+        author_obj = {**DEFAULT_USER, "id": str(author_id)}
 
     log.info(f"Sending message {message_content}")
     # pretend we just received a message in our testing channel
@@ -47,7 +54,7 @@ def message(self, message_content, as_owner=False, dm=False):
         "content": message_content,
         "components": [],
         "channel_id": str(TEST_CHANNEL_ID) if not dm else str(TEST_DMCHANNEL_ID),
-        "author": DEFAULT_USER if not as_owner else OWNER_USER,
+        "author": author_obj,
         "attachments": [],
     }
     if not dm:
