@@ -40,18 +40,9 @@ def combat_dir_iterator(dirpath: str) -> Iterable[dict]:
             yield from read_gzipped_file(fp)
 
 def find_players(events: Iterable[dict]) -> Iterable[dict]:
-    filtered_events =  filter(lambda event: True if event["event_type"] == "command" and event.get("command_name", "")== "init join" else False, events)
+    filtered_events =  filter(lambda event: True if event["event_type"] in ("command", "automation_run") and event.get("command_name", "")== "init join" else False, events)  
     for event in filtered_events:
         yield event.get("caster", {})
-
-    # TODO
-    #     def _extract_character_from_event(self, event):
-    #         if event["event_type"] not in ("command", "automation_run"):
-    #             return
-    #         caster = event["caster"]
-    #         if caster is None or "upstream" not in caster:
-    #             return
-    #         yield caster
 
 def dump_players_to_mongo(casters: Iterable[dict]) -> None:
     # establish mongo connection

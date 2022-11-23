@@ -27,3 +27,4 @@ credentials.py
 docker/env
 
 docs/_build/
+openai_key.txt
