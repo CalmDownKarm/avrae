@@ -79,12 +79,9 @@ def dump_players_to_mongo(casters: Iterable[dict]) -> None:
 
 def dump_csu_to_mongo(state_updates: Iterable[dict]) -> None:
     collection = "combats"
-    TEST_CHANNEL_ID = 314159265358979323  # pi
-
-    for state_update in state_updates:
-        if state_update:
-            state_update["channel"] = TEST_CHANNEL_ID
-            mongo_db[collection].update_one({"channel": TEST_CHANNEL_ID}, {"$set": state_update}, upsert=True)
+    TEST_CHANNEL_ID = "314159265358979323"  # pi
+    state_updates["channel"] = TEST_CHANNEL_ID
+    mongo_db[collection].update_one({"channel": TEST_CHANNEL_ID}, {"$set": state_updates}, upsert=True)
 
 
 def predict(prompt, gpt_kwargs):
@@ -105,12 +102,13 @@ async def test_all_assertions(avrae, dhttp):
         combat = scenario["combat"]
         ## dump characters and combats into db
         dump_players_to_mongo(characters)
-        dump_csu_to_mongo([combat])
+        dump_csu_to_mongo(combat)
 
         prompt = scenario["prompt"]
         response = scenario["command"]
         # response = predict(prompt, gpt_kwargs)
         combat = await active_combat(avrae)
-        avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
+        avrae.message("!spellbook", author_id=combat.current_combatant.controller_id)
+        # avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
         await dhttp.drain()
         scenarios[scenario_name](await active_combat(avrae))
