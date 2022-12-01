@@ -9,3 +9,7 @@ black==22.3.0
 
 # openai for nlp generation
 openai==0.25.0
+# nltk
+nltk==3.7
+#rouge-score
+rouge-score==0.1.2

@@ -17,6 +17,7 @@ services:
       - DICECLOUD_PASS
       - DICECLOUD_TOKEN
       - GOOGLE_SERVICE_ACCOUNT
+      - TEST_GAMEDATA_BASE_PATH=tests/nlp/dist_do_not_commit/dist
     volumes:
       - "./shared:/app/shared"
       - "~/Documents/avrae/aws-kinesis-dataset-exploration-tool/data/1664301210-f5fa4da8-314f-4a45-966a-950e0682d4dd:/opt/dataset/"
