@@ -13,4 +13,4 @@ RUN mkdir shared
 
 COPY . .
 
-ENTRYPOINT pytest tests/
+ENTRYPOINT pytest -rP tests/
