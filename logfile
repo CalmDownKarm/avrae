@@ -1,0 +1,34 @@
+
+fireball: PASS
+SENTENCE GLEU:fireball:1.0
+ROUGE:fireball:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+healing: PASS
+SENTENCE GLEU:healing:1.0
+ROUGE:healing:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+bless: PASS
+SENTENCE GLEU:bless:1.0
+ROUGE:bless:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+second_wind: PASS
+SENTENCE GLEU:second_wind:1.0
+ROUGE:second_wind:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+bardic_inspiration: PASS
+SENTENCE GLEU:bardic_inspiration:1.0
+ROUGE:bardic_inspiration:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+firebolt: PASS
+SENTENCE GLEU:firebolt:1.0
+ROUGE:firebolt:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+mon_fire_breath: PASS
+SENTENCE GLEU:mon_fire_breath:1.0
+ROUGE:mon_fire_breath:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+mon_dagger: PASS
+SENTENCE GLEU:mon_dagger:1.0
+ROUGE:mon_dagger:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+mon_troll: PASS
+SENTENCE GLEU:mon_troll:1.0
+ROUGE:mon_troll:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+ranged_attack: PASS
+SENTENCE GLEU:ranged_attack:1.0
+ROUGE:ranged_attack:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}
+melee_attack: PASS
+SENTENCE GLEU:melee_attack:1.0
+ROUGE:melee_attack:{'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0), 'rougeL': Score(precision=1.0, recall=1.0, fmeasure=1.0)}

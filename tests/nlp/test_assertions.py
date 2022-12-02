@@ -6,7 +6,8 @@ from pymongo import MongoClient
 from nltk.translate.gleu_score import sentence_gleu
 from rouge_score import rouge_scorer
 from pathlib import Path
-
+from cogs5e.initiative.combat import Combat
+from cogs5e.models.character import Character
 dir_path = Path(__file__).parent
 
 mongodb_url = os.getenv("MONGO_URL")
@@ -134,6 +135,7 @@ def dump_players_to_mongo(casters: Iterable[dict]) -> None:
         if caster:
             primary_key = {field: caster[field] for field in ["owner", "upstream"]}
             mongo_db[collection].update_one(primary_key, {"$set": caster}, upsert=True)
+    Character._cache.clear()
 
 
 def dump_csu_to_mongo(state_updates: Iterable[dict]) -> None:
@@ -141,6 +143,7 @@ def dump_csu_to_mongo(state_updates: Iterable[dict]) -> None:
     TEST_CHANNEL_ID = "314159265358979323"  # pi
     state_updates["channel"] = TEST_CHANNEL_ID
     mongo_db[collection].update_one({"channel": TEST_CHANNEL_ID}, {"$set": state_updates}, upsert=True)
+    Combat._cache.clear()
 
 
 def predict(prompt, gpt_kwargs):
@@ -169,7 +172,10 @@ async def test_all_assertions(avrae, dhttp):
         # response = predict(prompt, gpt_kwargs)
         reference_command = scenario["command"]
         combat = await active_combat(avrae)
-        avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
+        if scenario_name == "second_wind":
+            avrae.message(f"!spellbook", author_id=combat.current_combatant.controller_id)
+        else:
+            avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
         await dhttp.drain()
         pass_fail = "PASS" if scenario_maps[scenario_name](await active_combat(avrae)) else "FAIL"
         ghetto_logger(f"{scenario_name}: {pass_fail}")
