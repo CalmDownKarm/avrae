@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from nltk.translate.gleu_score import sentence_gleu
 from rouge_score import rouge_scorer
 from pathlib import Path
+import pandas as pd
 from cogs5e.initiative.combat import Combat
 from cogs5e.models.character import Character
 dir_path = Path(__file__).parent
@@ -26,8 +27,8 @@ def ghetto_logger(string_to_log):
 from tests.utils import active_combat, requires_data
 
 
-async def hp_change(active_combat, combatant, initial_hp, change_type="DAMAGE"):
-    current_hp = (await active_combat).get_combatant(combatant).hp
+def hp_change(active_combat, combatant, initial_hp, change_type="DAMAGE"):
+    current_hp = active_combat.get_combatant(combatant).hp
     if change_type == "DAMAGE":
         return current_hp < initial_hp
     if change_type == "HEALING":
@@ -45,26 +46,26 @@ def assert_fireball(active_combat):
     return all([hp_change(active_combat, orc, init_hp, "DAMAGE") for orc, init_hp in orcs.items()])
 
 
-async def assert_bardic_inspiration(active_combat):
-    effects = (await active_combat).get_combatant("Noxxis Blazehammer").get_effects()
-    return len(effects) == 1 and effects[0].name == "Feeling Inspired"
+def assert_bardic_inspiration(active_combat):
+    effects = active_combat.get_combatant("Noxxis Blazehammer").get_effects()
+    return len(effects) == 1 and effects[0].name.startswith("Feeling Inspired")
 
 
-async def assert_bless(active_combat):
+def assert_bless(active_combat):
     for combatant in ("Reef", "Calti", "Ophiz"):
-        effects = (await active_combat).get_combatant(combatant).get_effects()
-        return len(effects) == 1 and effects[0].named == "Blessed"
+        effects = active_combat.get_combatant(combatant).get_effects()
+        return len(effects) == 1 and effects[0].name == "Blessed"
 
 
-async def assert_healing(active_combat):
-    return hp_change(active_combat, "Reef", 20, "HEALING") and hp_change(active_combat, "Calti", 20, "NOOP")
+def assert_healing(active_combat):
+    return hp_change(active_combat, "Reef", 20, "HEALING") and hp_change(active_combat, "Calti", 15, "NOOP")
 
 
-async def melee_attack(active_combat):
+def melee_attack(active_combat):
     return hp_change(active_combat, "GFoY1", 53)
 
 
-async def monster_attack(active_combat):
+def monster_attack(active_combat):
     return all(
         [
             hp_change(active_combat, "Calti", 40, "DAMAGE"),
@@ -76,7 +77,7 @@ async def monster_attack(active_combat):
     )
 
 
-async def monster_firebreath(active_combat):
+def monster_firebreath(active_combat):
     return all(
         [
             hp_change(active_combat, "Calti", 45, "DAMAGE"),
@@ -87,7 +88,7 @@ async def monster_firebreath(active_combat):
     )
 
 
-async def monster_regen(active_combat):
+def monster_regen(active_combat):
     return all(
         [
             hp_change(active_combat, "TR1", 71, "HEALING"),
@@ -98,11 +99,11 @@ async def monster_regen(active_combat):
     )
 
 
-async def ranged_attack(active_combat):
-    return hp_change(active_combat, "CE1", 32, "DAMAGE") and hp_change(active_combat, "Rahotaur", 66, "NOOP")
+def ranged_attack(active_combat):
+    return hp_change(active_combat, "CE1", 32, "DAMAGE") and hp_change(active_combat, "Rahotur", 66, "NOOP")
 
 
-async def second_wind(active_combat):
+def second_wind(active_combat):
     return all(
         [
             hp_change(active_combat, "Ophizenya", 18, "HEALING"),
@@ -131,6 +132,7 @@ scenario_maps = {
 def dump_players_to_mongo(casters: Iterable[dict]) -> None:
     # establish mongo connection
     collection = "characters"
+    mongo_db[collection].drop()
     for caster in casters:
         if caster:
             primary_key = {field: caster[field] for field in ["owner", "upstream"]}
@@ -140,6 +142,7 @@ def dump_players_to_mongo(casters: Iterable[dict]) -> None:
 
 def dump_csu_to_mongo(state_updates: Iterable[dict]) -> None:
     collection = "combats"
+    mongo_db[collection].drop()
     TEST_CHANNEL_ID = "314159265358979323"  # pi
     state_updates["channel"] = TEST_CHANNEL_ID
     mongo_db[collection].update_one({"channel": TEST_CHANNEL_ID}, {"$set": state_updates}, upsert=True)
@@ -160,6 +163,7 @@ async def test_all_assertions(avrae, dhttp):
         scenarios = [json.loads(line) for line in f.readlines()]
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rougeL'])
     gpt_kwargs = {"model": "davinci", "temperature": 0.7}
+    results = []
     for scenario in scenarios:
         characters = scenario["characters"]
         scenario_name = scenario["scenario"]
@@ -172,14 +176,43 @@ async def test_all_assertions(avrae, dhttp):
         # response = predict(prompt, gpt_kwargs)
         reference_command = scenario["command"]
         combat = await active_combat(avrae)
-        if scenario_name == "second_wind":
-            avrae.message(f"!spellbook", author_id=combat.current_combatant.controller_id)
-        else:
-            avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
+        # avrae.message(f"!spellbook", author_id=combat.current_combatant.controller_id)
+        # else:
+        avrae.message(f"{response} hit fail", author_id=combat.current_combatant.controller_id)
         await dhttp.drain()
-        pass_fail = "PASS" if scenario_maps[scenario_name](await active_combat(avrae)) else "FAIL"
+        if scenario_maps[scenario_name](await active_combat(avrae)):
+            pass_fail = "PASS"
+        else:
+            pass_fail = "FAIL"
         ghetto_logger(f"{scenario_name}: {pass_fail}")
         sglue = sentence_gleu([reference_command.split(' ')], response.split(' '))
         ghetto_logger(f"SENTENCE GLEU:{scenario_name}:{sglue}")
         rouge_scores = scorer.score(reference_command, response)
-        ghetto_logger(f"ROUGE:{scenario_name}:{rouge_scores}")
+        results += [{
+            "PASS_FAIL": pass_fail,
+            "Scenario": scenario_name,
+            "Sentence GLEU": sglue,
+            "Reference": reference_command,
+            "Generation": response,
+            "RougeL P": rouge_scores["rougeL"].precision,
+            "RougeL R": rouge_scores["rougeL"].recall,
+            "RougeL F": rouge_scores["rougeL"].fmeasure,
+            "Rouge1 P": rouge_scores["rouge1"].precision,
+            "Rouge1 R": rouge_scores["rouge1"].recall,
+            "Rouge1 F": rouge_scores["rouge1"].fmeasure
+        }]
+    
+    df = pd.DataFrame(results)
+    df.to_csv("/opt/results.csv")
+    fraction_of_passes = sum([1/len(scenarios) for k in results if k["PASS_FAIL"]=="PASS"])
+    average_sglue = df["Sentence GLEU"].mean()
+    
+    ghetto_logger("_______________________")
+    ghetto_logger(f"Fraction of Passes : {fraction_of_passes}")
+    ghetto_logger(f"Averge SGLUE : {average_sglue}")
+    ghetto_logger(f"Average Rouge1 F {df['Rouge1 F'].mean()}")
+    ghetto_logger(f"Average Rouge1 P {df['Rouge1 P'].mean()}")
+    ghetto_logger(f"Average Rouge1 R {df['Rouge1 R'].mean()}")
+    ghetto_logger(f"Average RougeL F {df['RougeL F'].mean()}")
+    ghetto_logger(f"Average RougeL P {df['RougeL P'].mean()}")
+    ghetto_logger(f"Average RougeL R {df['RougeL R'].mean()}")
