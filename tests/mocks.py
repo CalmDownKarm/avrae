@@ -76,6 +76,8 @@ class MockDiscordHTTP(HTTPClient):
             await asyncio.wait_for(asyncio.gather(*to_wait), timeout=10)
         except asyncio.TimeoutError:
             log.info(f"Tasks we were waiting on when we timed out: {to_wait!r}")
+            for task in to_wait:
+                task.cancel()
             raise
         self.clear()
 
